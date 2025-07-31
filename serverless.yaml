@@ -12,6 +12,14 @@ provider:
   environment:
     STAGE: ${self:provider.stage}
     NODE_ENV: ${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - Ref: AccountTopic
 
 plugins:
   - serverless-plugin-typescript
