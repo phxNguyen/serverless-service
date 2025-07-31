@@ -1,0 +1,70 @@
+service: adhoc-tasks-scheduler
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-southeast-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 900  # 15 minutes cho adhoc tasks
+  environment:
+    STAGE: ${self:provider.stage}
+    NODE_ENV: ${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: 
+            - "arn:aws:logs:${self:provider.region}:*:log-group:/aws/lambda/*:*:*"
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+          Resource: 
+            - Ref: TaskDLQ
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+functions:
+  # Daily data processing
+  ping:
+    handler: src/handlers/ping.scheduledHandler
+    events:
+      - schedule: 
+          rate: rate(1 minute)  # Every minute for testing
+          enabled: true
+          input:
+            type: "adhoc-task-demo"
+    onError: 
+      Ref: TaskDLQ
+      
+  # Optional HTTP endpoint for testing
+  pingHttp:
+    handler: src/handlers/ping.handler
+    events:
+      - http:
+          path: /ping
+          method: get
+
+resources:
+  Resources:
+    # SQS queue for failed tasks
+    TaskDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-dlq
+        
+    # CloudWatch Log Group
+    TaskLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}
+        RetentionInDays: 7
