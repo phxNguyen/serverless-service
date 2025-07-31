@@ -36,7 +36,9 @@ functions:
           enabled: true
           input:
             type: "adhoc-task-demo"
-      
+  task:
+    handler: src/handlers/task.handler
+    
   # Fan-out pattern demo functions
   account-svc:
     handler: src/handlers/account.handler
