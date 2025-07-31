@@ -11,7 +11,7 @@ export const scheduledHandler = async (
   console.log("Remaining time:", context.getRemainingTimeInMillis(), "ms");
   
   // Demo adhoc task processing
-  console.log("Processing adhoc task...");
+  console.log("hello lighthouse, this is adhoc task scheduler!");
 
   console.log("Task completed successfully at:", new Date().toISOString());
   console.log("=== TASK FINISHED ===");

@@ -18,15 +18,43 @@ plugins:
   - serverless-offline
 
 functions:
-  # Daily data processing
+  # Original scheduler demo
   ping:
     handler: src/handlers/ping.scheduledHandler
     events:
-      - schedule: 
+      - schedule:
+          name: pingSchedule 
           rate: rate(1 minute)  # Every minute for testing
           enabled: true
           input:
             type: "adhoc-task-demo"
+      
+  # Fan-out pattern demo functions
+  account-svc:
+    handler: src/handlers/account.handler
+    environment:
+      ACCOUNT_TOPIC_ARN:
+        Ref: AccountTopic
+    events:
+      - http:
+          path: /account/update
+          method: post
+          
+  open-search-svc:
+    handler: src/handlers/opensearch.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [OpenSearchQueue, Arn]
+          batchSize: 1
+          
+  patient-svc:
+    handler: src/handlers/patient.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [PatientQueue, Arn]
+          batchSize: 1
       
   # Optional HTTP endpoint for testing
   pingHttp:
@@ -38,15 +66,74 @@ functions:
 
 resources:
   Resources:
-    # SQS queue for failed tasks
-    TaskDLQ:
+    # Fan-out pattern resources
+    AccountTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:service}-${self:provider.stage}-account-topic
+        
+    OpenSearchQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:service}-${self:provider.stage}-dlq
+        QueueName: ${self:service}-${self:provider.stage}-opensearch-queue
         
-    # CloudWatch Log Group
-    TaskLogGroup:
-      Type: AWS::Logs::LogGroup
+    PatientQueue:
+      Type: AWS::SQS::Queue
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}
-        RetentionInDays: 7
+        QueueName: ${self:service}-${self:provider.stage}-patient-queue
+        
+    # SNS subscriptions to connect queues to topic
+    OpenSearchSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn:
+          Ref: AccountTopic
+        Protocol: sqs
+        Endpoint:
+          Fn::GetAtt: [OpenSearchQueue, Arn]
+          
+    PatientSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn:
+          Ref: AccountTopic
+        Protocol: sqs
+        Endpoint:
+          Fn::GetAtt: [PatientQueue, Arn]
+          
+    # Queue policies to allow SNS to send messages
+    OpenSearchQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - Ref: OpenSearchQueue
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: sns.amazonaws.com
+              Action: sqs:SendMessage
+              Resource:
+                Fn::GetAtt: [OpenSearchQueue, Arn]
+              Condition:
+                ArnEquals:
+                  aws:SourceArn:
+                    Ref: AccountTopic
+                    
+    PatientQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - Ref: PatientQueue
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: sns.amazonaws.com
+              Action: sqs:SendMessage
+              Resource:
+                Fn::GetAtt: [PatientQueue, Arn]
+              Condition:
+                ArnEquals:
+                  aws:SourceArn:
+                    Ref: AccountTopic
