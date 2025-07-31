@@ -8,7 +8,7 @@ provider:
   region: ap-southeast-1
   stage: ${opt:stage, 'dev'}
   memorySize: 256
-  timeout: 900  # 15 minutes cho adhoc tasks
+  timeout: 30  # 30 seconds - sufficient for demo
   environment:
     STAGE: ${self:provider.stage}
     NODE_ENV: ${self:provider.stage}

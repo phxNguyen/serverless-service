@@ -4,17 +4,15 @@ export const scheduledHandler = async (
   event: ScheduledEvent,
   context: Context
 ): Promise<void> => {
-  console.log("=== ADHOC TASK TRIGGERED ===");
   console.log("Event received:", JSON.stringify(event, null, 2));
   console.log("Function name:", context.functionName);
   console.log("Request ID:", context.awsRequestId);
   console.log("Remaining time:", context.getRemainingTimeInMillis(), "ms");
   
   // Demo adhoc task processing
-  console.log("hello lighthouse, this is adhoc task scheduler!");
+  console.log("hello lighthouse 💡🏠, this is adhoc task scheduler!");
 
   console.log("Task completed successfully at:", new Date().toISOString());
-  console.log("=== TASK FINISHED ===");
 };
 
 // Optional HTTP endpoint for manual testing
