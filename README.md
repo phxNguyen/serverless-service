@@ -1,4 +1,4 @@
-# Serverless Architecture Demo
+# Serverless Service Demo
 
 **Datahouse - Team Lighthouse**  
 Demo repository showcasing serverless patterns for the frontend team and new members.
