@@ -30,15 +30,13 @@ functions:
   ping:
     handler: src/handlers/ping.scheduledHandler
     events:
-      - schedule:
+      - eventBridge:
           name: pingSchedule 
           rate: rate(1 minute)  # Every minute for testing
           enabled: true
-          input:
-            type: "adhoc-task-demo"
-  task:
-    handler: src/handlers/task.handler
-    
+          # input:
+          #   type: "adhoc-task-demo"
+
   # Fan-out pattern demo functions
   account-svc:
     handler: src/handlers/account.handler
