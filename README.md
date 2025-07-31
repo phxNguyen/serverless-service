@@ -17,8 +17,13 @@ This repo demonstrates two key serverless patterns:
 - SNS distributes to multiple SQS queues  
 - Multiple services process the same event simultaneously
 
-```
-account-svc → SNS Topic → [SQS Queue A, SQS Queue B] → [open-search-svc, patient-svc]
+```mermaid
+graph LR
+    A[account-svc] --> B[SNS Topic]
+    B --> C[SQS Queue A]
+    B --> D[SQS Queue B]
+    C --> E[open-search-svc]
+    D --> F[patient-svc]
 ```
 
 ## 🏗️ Structure
@@ -79,7 +84,7 @@ yarn remove   # Delete all AWS resources
 ## Goals
 
 **For Frontend Team:**
-- Understand serverless event-driven architecture
+- Understand serverless event-driven
 - See how backend services communicate asynchronously
 - Learn about AWS Lambda, SNS, SQS patterns
 
