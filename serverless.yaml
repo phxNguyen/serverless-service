@@ -12,22 +12,6 @@ provider:
   environment:
     STAGE: ${self:provider.stage}
     NODE_ENV: ${self:provider.stage}
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-          Resource: 
-            - "arn:aws:logs:${self:provider.region}:*:log-group:/aws/lambda/*:*:*"
-        - Effect: Allow
-          Action:
-            - sqs:SendMessage
-            - sqs:ReceiveMessage
-          Resource: 
-            - Ref: TaskDLQ
 
 plugins:
   - serverless-plugin-typescript
@@ -43,8 +27,6 @@ functions:
           enabled: true
           input:
             type: "adhoc-task-demo"
-    onError: 
-      Ref: TaskDLQ
       
   # Optional HTTP endpoint for testing
   pingHttp:
