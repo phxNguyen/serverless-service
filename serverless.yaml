@@ -31,7 +31,7 @@ functions:
     handler: src/handlers/ping.scheduledHandler
     events:
       - schedule:
-          name: pingSchedule
+          name: pingSchedule1
           rate: rate(1 minute)  # Every minute for testing
           enabled: true
           input:
